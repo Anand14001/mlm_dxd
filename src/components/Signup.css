@@ -1,0 +1,86 @@
+.signup-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 55px;
+    background-color: #f0f8ff;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    
+  }
+  
+  .title {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #333;
+  }
+  
+  .label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+  }
+  
+  .asterisk {
+    color: red;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    background-color: #fff;
+  }
+  
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+
+  }
+  
+  .checkbox {
+    margin-right: 10px;
+  }
+  
+  .checkbox-label {
+    font-size: 16px;
+    right: 70;
+  }
+  
+  .sponsor-info {
+    background-color: #e9f5f7;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .button {
+    width: 100%;
+    background-color: #33cbc9;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  
+  .button:hover {
+    background-color: #28a8a7;
+  }
+  
+  .link {
+    font-size: 16px;
+    color: #33cbc9;
+    text-align: center;
+    margin-top: 15px;
+  }
+  
