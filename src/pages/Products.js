@@ -113,7 +113,7 @@ const ProductPage = () => {
     setWidth('');
     setHeight('');
     setAdditionalReq('');
-    setModalVisible(true);  // Show modal when a product is selected
+    setIsModalOpen(true);  // Show modal when a product is selected
   };
 
   const handleSubmitQuotation = async () => {
