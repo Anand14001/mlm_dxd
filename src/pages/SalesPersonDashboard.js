@@ -157,7 +157,7 @@ export default function SalespersonDashboard() {
       </div>
 
       <div className="card">
-        <h2 className="card-title">Downline Network</h2>
+        <h2 className="card-title">My Downlines</h2>
         {downline.length > 0 ? (
           downline.map((member, index) => (
             <div key={index} className="downline-item">

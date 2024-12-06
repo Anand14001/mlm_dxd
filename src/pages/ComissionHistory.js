@@ -117,7 +117,7 @@ export default function CommissionHistory() {
         )}
       </div>
 
-      <button className="refresh-button" onClick={onRefresh}>Refresh</button>
+      
     </div>
   );
 }
