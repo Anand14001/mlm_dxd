@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "./firebase/firebase";
+
+import "./App.css"; // Import the CSS file
 
 import Loading from "./components/Loading";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -14,6 +16,109 @@ import MLM from "./pages/MlmScreen";
 import Products from "./pages/Products";
 import CommissionHistory from "./pages/ComissionHistory";
 import QuotationManagement from "./pages/QuotationManagement";
+
+const Navbar = ({ userRole }) => {
+  const location = useLocation(); // This will now have access to the Router context
+
+  return (
+    <nav className="navbar">
+      <ul className="nav-list">
+        {userRole === "Admin" && (
+          <>
+            <li className="nav-item">
+              <Link
+                to="/"
+                className={`nav-link ${location.pathname === "/" ? "active" : ""}`}
+              >
+                Admin Dashboard
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/quotations"
+                className={`nav-link ${location.pathname === "/quotations" ? "active" : ""}`}
+              >
+                Quotation Management
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/mlm"
+                className={`nav-link ${location.pathname === "/mlm" ? "active" : ""}`}
+              >
+                MLM
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/products"
+                className={`nav-link ${location.pathname === "/products" ? "active" : ""}`}
+              >
+                Products
+              </Link>
+            </li>
+          </>
+        )}
+        {userRole === "salesperson" && (
+          <>
+            <li className="nav-item">
+              <Link
+                to="/"
+                className={`nav-link ${location.pathname === "/" ? "active" : ""}`}
+              >
+                Salesperson Dashboard
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/referral"
+                className={`nav-link ${location.pathname === "/referral" ? "active" : ""}`}
+              >
+                Referral
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/commission-history"
+                className={`nav-link ${location.pathname === "/commission-history" ? "active" : ""}`}
+              >
+                Commission History
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/products"
+                className={`nav-link ${location.pathname === "/products" ? "active" : ""}`}
+              >
+                Products
+              </Link>
+            </li>
+          </>
+        )}
+        {!userRole && (
+          <>
+            <li className="nav-item">
+              <Link
+                to="/login"
+                className={`nav-link ${location.pathname === "/login" ? "active" : ""}`}
+              >
+                Login
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                to="/signup"
+                className={`nav-link ${location.pathname === "/signup" ? "active" : ""}`}
+              >
+                Sign Up
+              </Link>
+            </li>
+          </>
+        )}
+      </ul>
+    </nav>
+  );
+};
 
 const App = () => {
   const [userRole, setUserRole] = useState(null);
@@ -43,32 +148,7 @@ const App = () => {
   return (
     <Router>
       {/* Navbar */}
-      <nav style={{ backgroundColor: '#333', padding: '1rem',alignItems:'center' }}>
-        <ul style={{ listStyleType: 'none', display: 'flex', gap: '20px' }}>
-          {userRole === 'Admin' && (
-            <>
-              <li><Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Admin Dashboard</Link></li>
-              <li><Link to="/quotations" style={{ color: 'white', textDecoration: 'none' }}>Quotation Management</Link></li>
-              <li><Link to="/mlm" style={{ color: 'white', textDecoration: 'none' }}>MLM</Link></li>
-              <li><Link to="/products" style={{ color: 'white', textDecoration: 'none' }}>Products</Link></li>
-            </>
-          )}
-          {userRole === 'salesperson' && (
-            <>
-              <li><Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Salesperson Dashboard</Link></li>
-              <li><Link to="/referral" style={{ color: 'white', textDecoration: 'none' }}>Referral</Link></li>
-              <li><Link to="/commission-history" style={{ color: 'white', textDecoration: 'none' }}>Commission History</Link></li>
-              <li><Link to="/products" style={{ color: 'white', textDecoration: 'none' }}>Products</Link></li>
-            </>
-          )}
-          {!userRole && (
-            <>
-              <li><Link to="/login" style={{ color: 'white', textDecoration: 'none' }}>Login</Link></li>
-              <li><Link to="/signup" style={{ color: 'white', textDecoration: 'none' }}>Sign Up</Link></li>
-            </>
-          )}
-        </ul>
-      </nav>
+      <Navbar userRole={userRole} />
 
       {/* Routes */}
       <Routes>

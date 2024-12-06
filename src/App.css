@@ -36,3 +36,52 @@
     transform: rotate(360deg);
   }
 }
+
+/* Styles for the navigation bar */
+.navbar {
+  background-color: #333;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  border-radius: 10px; /* Adds border radius */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Adds elevation */
+  max-width: 100%; /* Optional: Makes the navbar narrower */
+  margin-bottom: 30px;
+  padding: 30px;
+}
+
+.nav-list {
+  list-style-type: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: #555;
+  color: #fcbe0f; /* Highlight color */
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+/* Highlight the active tab */
+.nav-link.active {
+  background-color: #fcbe0f;
+  color: #333;
+  border-radius: 5px;
+  font-weight: bold;
+  
+}
+
