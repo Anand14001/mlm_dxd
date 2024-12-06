@@ -48,6 +48,9 @@
   max-width: 100%; /* Optional: Makes the navbar narrower */
   margin-bottom: 30px;
   padding: 30px;
+  border-top-right-radius: 0%;
+  border-top-left-radius: 0%;
+
 }
 
 .nav-list {
@@ -82,6 +85,6 @@
   color: #333;
   border-radius: 5px;
   font-weight: bold;
-  
+  color: #ffff;
 }
 
