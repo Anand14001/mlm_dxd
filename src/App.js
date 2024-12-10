@@ -17,7 +17,8 @@ import Products from "./pages/Products";
 import CommissionHistory from "./pages/ComissionHistory";
 import QuotationManagement from "./pages/QuotationManagement";
 
-const Navbar = ({ userRole }) => {
+const Navbar = ({ userRole, handleLogout }) => {
+  
   const location = useLocation(); // This will now have access to the Router context
 
   return (
@@ -56,6 +57,8 @@ const Navbar = ({ userRole }) => {
               >
                 Products
               </Link>
+
+
             </li>
           </>
         )}
@@ -93,6 +96,7 @@ const Navbar = ({ userRole }) => {
                 Products
               </Link>
             </li>
+
           </>
         )}
         {!userRole && (
@@ -116,6 +120,9 @@ const Navbar = ({ userRole }) => {
           </>
         )}
       </ul>
+      <button className="logout-button1" onClick={handleLogout}>
+    Log Out
+  </button>
     </nav>
   );
 };
@@ -123,6 +130,11 @@ const Navbar = ({ userRole }) => {
 const App = () => {
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    window.location.reload(); // Or use navigation to redirect to the login page
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -148,7 +160,7 @@ const App = () => {
   return (
     <Router>
       {/* Navbar */}
-      <Navbar userRole={userRole} />
+      <Navbar userRole={userRole} handleLogout={handleLogout} />
 
       {/* Routes */}
       <Routes>

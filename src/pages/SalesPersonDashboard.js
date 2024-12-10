@@ -171,10 +171,6 @@ export default function SalespersonDashboard() {
           <p className="no-data">No downline members found</p>
         )}
       </div>
-
-      <button className="logout-button" onClick={handleLogout}>
-        Logout
-      </button>
     </div>
   );
 }

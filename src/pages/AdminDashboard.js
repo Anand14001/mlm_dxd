@@ -120,10 +120,6 @@ const AdminDashboard = () => {
           Generate Reports
         </button>
       </div>
-
-      <button className="logout-button" onClick={handleLogout}>
-        Log Out
-      </button>
     </div>
   );
 };

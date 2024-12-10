@@ -8,31 +8,62 @@ const QuotationManagement = () => {
   const [commissionPercentages, setCommissionPercentages] = useState({});
   const [paymentStatuses, setPaymentStatuses] = useState({});
   const [estimatedPrices, setEstimatedPrices] = useState({});
+  const [filteredQuotations, setFilteredQuotations] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchQuotations = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "Quotation_form_submission"));
-      const fetchedQuotations = [];
-      querySnapshot.forEach((doc) => {
-        fetchedQuotations.push({ id: doc.id, ...doc.data() });
-      });
-      setQuotations(fetchedQuotations);
-    } catch (error) {
-      console.error("Error fetching quotations:", error);
-    }
-  };
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+  
   useEffect(() => {
-    setLoading(true);
-    fetchQuotations().finally(() => setLoading(false));
+    const fetchQuotations = async () => {
+      try {
+        setLoading(true);
+        const querySnapshot = await getDocs(collection(db, "Quotation_form_submission"));
+        const fetchedQuotations = [];
+        querySnapshot.forEach((doc) => {
+          fetchedQuotations.push({ id: doc.id, ...doc.data() });
+        });
+        setQuotations(fetchedQuotations);
+        setFilteredQuotations(fetchedQuotations);
+      } catch (error) {
+        console.error("Error fetching quotations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuotations();
   }, []);
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchQuotations();
-    setRefreshing(false);
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    filterQuotations(query, filterStatus);
+  };
+
+  const handleFilterStatus = (status) => {
+    setFilterStatus(status);
+    filterQuotations(searchQuery, status);
+  };
+
+  const filterQuotations = (query, status) => {
+    let filtered = quotations;
+    if (query) {
+      filtered = filtered.filter((q) =>
+        q.clientName.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+    if (status) {
+      filtered = filtered.filter((q) => q.status === status);
+    }
+    setFilteredQuotations(filtered);
+    setCurrentPage(1); // Reset to the first page
+  };
+
+  const handlePageChange = (page) => {
+    if (page > 0 && page <= Math.ceil(filteredQuotations.length / itemsPerPage)) {
+      setCurrentPage(page);
+    }
   };
 
   const handleCommissionChange = (id, percentage) => {
@@ -43,124 +74,192 @@ const QuotationManagement = () => {
     setEstimatedPrices({ ...estimatedPrices, [id]: price });
   };
 
-  const calculateCommission = (price, percentage) => {
-    return (price * (percentage / 100)).toFixed(2);
+  const calculateCommissionValue = (estimatedPrice, commissionPercentage) => {
+    return (estimatedPrice * (commissionPercentage / 100)).toFixed(2);
   };
 
   const updateQuotationStatus = async (id, status) => {
-    setLoading(true);
     const quotationRef = doc(db, "Quotation_form_submission", id);
     const quotation = quotations.find((q) => q.id === id);
 
-    if (!quotation) {
-      console.error("Quotation not found!");
-      setLoading(false);
-      return;
-    }
+    if (!quotation) return;
 
     const estimatedPrice = estimatedPrices[id] || quotation.estimatedPrice || 0;
     const commissionPercentage = commissionPercentages[id] || 0;
-
-    if (!estimatedPrice || !commissionPercentage) {
-      alert("Estimated Price and Commission Percentage must be entered to approve the quotation.");
-      setLoading(false);
-      return;
-    }
-
-    const commissionValue = calculateCommission(estimatedPrice, commissionPercentage);
+    const commissionValue = calculateCommissionValue(estimatedPrice, commissionPercentage);
 
     try {
       await updateDoc(quotationRef, {
-        status: status,
-        commissionPercentage: commissionPercentage,
-        commissionValue: commissionValue,
-        estimatedPrice: estimatedPrice,
+        status,
+        commissionPercentage,
+        commissionValue,
+        estimatedPrice,
       });
 
-      setQuotations((prev) =>
-        prev.map((q) => (q.id === id ? { ...q, status } : q))
+      const updatedQuotations = quotations.map((q) =>
+        q.id === id ? { ...q, status } : q
       );
+      setQuotations(updatedQuotations);
     } catch (error) {
       console.error("Error updating quotation status:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const updatePaymentStatus = async (id, status) => {
-    setLoading(true);
-    const quotationRef = doc(db, "Quotation_form_submission", id);
+  const handleFollowUp = (id) => {
+    alert(`Follow-up action for quotation ID: ${id}`);
+    // Add your follow-up logic here
+  };
+
+  const handleDeleteQuotation = async (id) => {
     try {
-      await updateDoc(quotationRef, { paymentStatus: status });
-      setPaymentStatuses({ ...paymentStatuses, [id]: status });
+      await updateDoc(doc(db, "Quotation_form_submission", id), {
+        status: "Deleted",
+      });
+      setQuotations((prev) => prev.filter((quotation) => quotation.id !== id));
+      alert("Quotation deleted successfully.");
     } catch (error) {
-      console.error("Error updating payment status:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error deleting quotation:", error);
+      alert("Failed to delete the quotation. Please try again.");
     }
+  };
+
+  const currentItems = filteredQuotations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const isApproveButtonDisabled = (id) => {
+    const estimatedPrice = estimatedPrices[id] || 0;
+    const commissionPercentage = commissionPercentages[id] || 0;
+    return !(estimatedPrice > 0 && commissionPercentage > 0);
   };
 
   return (
     <div className="container">
       <h2 className="header">Quotation Management</h2>
-      {loading && <div className="loader">Loading...</div>}
-      <div className="quotations">
-        {quotations.map((item) => {
-          const commissionPercentage = commissionPercentages[item.id] || '';
-          const commissionValue = calculateCommission(estimatedPrices[item.id] || item.estimatedPrice, commissionPercentage);
 
-          return (
-            <div key={item.id} className="card">
-              <h3>Client Details</h3>
-              <p><strong>Name:</strong> {item.clientName}</p>
-              <p><strong>Email:</strong> {item.clientEmail}</p>
-              <p><strong>Phone:</strong> {item.clientPhone}</p>
+      {/* Filters */}
+      <div className="filter-container">
+        <input
+          type="text"
+          placeholder="Search by Client Name"
+          className="filter-input"
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)}
+        />
+        <select
+          value={filterStatus}
+          onChange={(e) => handleFilterStatus(e.target.value)}
+          className="filter-dropdown"
+        >
+          <option value="">All Statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Accepted">Accepted</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
 
-              <h3>Measurement Details</h3>
-              <p><strong>Product:</strong> {item.product.name}</p>
-              <p><strong>Height:</strong> {item.height}ft <strong>Width:</strong> {item.width}ft</p>
+      {loading ? (
+        <div className="loader">Loading...</div>
+      ) : (
+        <table className="quotation-table">
+          <thead>
+            <tr>
+              <th>Client Name</th>
+              <th>Product</th>
+              <th>Status</th>
+              <th>Estimated Price</th> {/* New column */}
+              <th>Commission (%)</th> {/* New column */}
+              <th>Commission Value</th> {/* New column */}
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentItems.map((item) => {
+              const commissionValue = calculateCommissionValue(
+                estimatedPrices[item.id] || item.estimatedPrice,
+                commissionPercentages[item.id] || item.commissionPercentage || 0
+              );
 
-              <h3>Payment Details</h3>
-              <input
-                type="number"
-                placeholder="Enter Estimated Price"
-                onChange={(e) => handleEstimatedPriceChange(item.id, parseFloat(e.target.value))}
-              />
-              <input
-                type="number"
-                placeholder="Commission (%)"
-                value={commissionPercentage}
-                onChange={(e) => handleCommissionChange(item.id, parseFloat(e.target.value))}
-              />
-              <p><strong>Commission Value:</strong> ₹{commissionValue}</p>
+              return (
+                <tr key={item.id}>
+                  <td>{item.clientName}</td>
+                  <td>{item.product.name}</td>
+                  <td>{item.status}</td>
+                  <td>{estimatedPrices[item.id] || item.estimatedPrice || "N/A"}</td> {/* Display Estimated Price */}
+                  <td>{commissionPercentages[item.id] || item.commissionPercentage || "N/A"}</td> {/* Display Commission Percentage */}
+                  <td>{commissionValue}</td> {/* Display Commission Value */}
+                  <td>
+                    {item.status === "Pending" && (
+                      <>
 
-              <h3>Payment Status</h3>
-              <select
-                value={paymentStatuses[item.id] || 'Pending'}
-                onChange={(e) => updatePaymentStatus(item.id, e.target.value)}
-              >
-                <option value="Completed">Completed</option>
-                <option value="Pending">Pending</option>
-                <option value="Canceled">Canceled</option>
-              </select>
+                        <label className="input-label">
+                          Estimated Price <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="Enter Estimated Price"
+                          onChange={(e) =>
+                            handleEstimatedPriceChange(item.id, parseFloat(e.target.value))
+                          }
+                          className="inp"
+                        />
+                        <label className="input-label">
+                          Commission (%) <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="Enter Commission (%)"
+                          onChange={(e) =>
+                            handleCommissionChange(item.id, parseFloat(e.target.value))
+                          }
+                          className="inp"
+                        />
+                        <button
+                          className="Approve-button"
+                          onClick={() => updateQuotationStatus(item.id, "Accepted")}
+                          disabled={isApproveButtonDisabled(item.id)}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="Reject-button"
+                          onClick={() => updateQuotationStatus(item.id, "Rejected")}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    {item.status === "Accepted" && (
+                      <button className="Follow-up-button" onClick={() => handleFollowUp(item.id)}>
+                        Follow Up
+                      </button>
+                    )}
+                    {item.status === "Rejected" && (
+                      <button className="Delete-button" onClick={() => handleDeleteQuotation(item.id)}>
+                        Delete Quotation
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
 
-              <p className={`status ${item.status === 'Accepted' ? 'status-accepted' : item.status === 'Rejected' ? 'status-rejected' : 'status-pending'}`}>
-                Quotation Status: {item.status}
-              </p>
-
-              <div className="button-container">
-                {item.status === 'Pending' && (
-                  <>
-                    <button onClick={() => updateQuotationStatus(item.id, 'Accepted')}>Approve</button>
-                    <button  onClick={() => updateQuotationStatus(item.id, 'Rejected')}>Reject</button>
-                  </>
-                )}
-                {item.status === 'Accepted' && <button onClick={() => alert("Follow-up action for the quotation")}>Follow Up</button>}
-                {item.status === 'Rejected' && <button onClick={() => alert("Delete quotation action")}>Delete Quotation</button>}
-              </div>
-            </div>
-          );
-        })}
+      {/* Pagination */}
+      <div className="pagination-container">
+        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+          Previous
+        </button>
+        <span>Page {currentPage}</span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === Math.ceil(quotations.length / itemsPerPage)}
+        >
+          Next
+        </button>
       </div>
     </div>
   );
