@@ -120,9 +120,11 @@ const Navbar = ({ userRole, handleLogout }) => {
           </>
         )}
       </ul>
-      <button className="logout-button1" onClick={handleLogout}>
-    Log Out
-  </button>
+      {(userRole === "Admin" || userRole === "salesperson") && (
+        <button className="logout-button1" onClick={handleLogout}>
+          Log Out
+        </button>
+      )}
     </nav>
   );
 };
