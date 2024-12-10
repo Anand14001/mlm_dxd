@@ -14,42 +14,48 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
+      // Authenticate the user
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
   
-      console.log("Logged in user:", user);
-  
+      // Fetch user data from Firestore
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
   
       if (userDocSnap.exists()) {
         const userData = userDocSnap.data();
-        const userRole = userData.role ? userData.role.toLowerCase() : null; // Make sure the role exists and is lowercase
+        const userRole = userData.role ? userData.role.toLowerCase() : null;
   
         console.log("User role from Firestore:", userRole);
         console.log("Selected role from state:", role.toLowerCase());
   
-        // Check if the role from Firestore matches the selected role
+        // Check if roles match
         if (userRole === role.toLowerCase()) {
           alert("Login successful!");
   
           // Navigate based on the user role
           if (userRole === "admin") {
-            navigate("/"); // Navigate to Admin Dashboard
+            navigate("/"); // Replace with your admin dashboard route
           } else if (userRole === "salesperson") {
-            navigate("/"); // Navigate to Salesperson Dashboard
+            navigate("/"); // Replace with your salesperson dashboard route
           }
         } else {
-          alert("Role Mismatch: Your role does not match the selected login type.");
+          alert(
+            "Invalid login credentials. Please check your details and try again."
+          );
+  
+          // Explicitly sign out the user to prevent navigation
+          await auth.signOut();
         }
       } else {
         alert("Error: User data not found.");
       }
     } catch (error) {
       console.error("Login Error:", error);
-      alert(`Login Error: ${error.message}`);
+      alert("Login Error: Invalid email or password.");
     }
   };
+  
   
   
 
